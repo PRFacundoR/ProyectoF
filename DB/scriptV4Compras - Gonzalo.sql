@@ -208,7 +208,7 @@ CREATE TABLE auditoria.bitacora(id_log SERIAL PRIMARY KEY,
 
 
 
-
+-- corregir errores de semantica luego
 CREATE OR REPLACE FUNCTION finanzas.fn_dashboard_totales(p_fecha_desde DATE, p_fecha_hasta DATE)
 RETURNS TABLE (total_comprado DECIMAL, total_pagado DECIMAL, deuda_actual DECIMAL) AS $$
 BEGIN
