@@ -5,9 +5,9 @@ namespace APIProyecto.Models;
 
 public partial class StockUbicacion
 {
-    public int IdProducto { get; set; }
-
     public int IdUbicacion { get; set; }
+
+    public int IdProducto { get; set; }
 
     public int? Cantidad { get; set; }
 

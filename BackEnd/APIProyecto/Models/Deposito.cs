@@ -7,7 +7,7 @@ public partial class Deposito
 {
     public int IdDeposito { get; set; }
 
-    public string Nombre { get; set; } = null!;
+    public string? Nombre { get; set; }
 
     public string Direccion { get; set; } = null!;
 

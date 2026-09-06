@@ -19,6 +19,8 @@ public partial class Factura
 
     public decimal? Iva { get; set; }
 
+    public string? CondicionPago { get; set; }
+
     public string? Estado { get; set; }
 
     public string? ArchivoAdjunto { get; set; }
@@ -26,4 +28,6 @@ public partial class Factura
     public int IdCompra { get; set; }
 
     public virtual Compra IdCompraNavigation { get; set; } = null!;
+
+    public virtual ICollection<NotasCreditoDebito> NotasCreditoDebitos { get; set; } = new List<NotasCreditoDebito>();
 }

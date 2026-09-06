@@ -7,7 +7,7 @@ public partial class NotasCreditoDebito
 {
     public int IdNota { get; set; }
 
-    public int IdProveedor { get; set; }
+    public int IdFactura { get; set; }
 
     public string? TipoNota { get; set; }
 
@@ -21,7 +21,7 @@ public partial class NotasCreditoDebito
 
     public string? ArchivoAdjunto { get; set; }
 
-    public virtual Proveedore IdProveedorNavigation { get; set; } = null!;
+    public virtual Factura IdFacturaNavigation { get; set; } = null!;
 
     public virtual ICollection<MovimientosCc> MovimientosCcs { get; set; } = new List<MovimientosCc>();
 }

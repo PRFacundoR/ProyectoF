@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "D:\\1MIS COSAS\\Facultad\\Proyecto F\\BackEnd\\APIProyecto\\APIProyecto.csproj": {}
+    "C:\\Users\\mgonz\\OneDrive\\Escritorio\\Proyecto Final - Para tabajar\\ProyectoF\\BackEnd\\APIProyecto\\APIProyecto.csproj": {}
   },
   "projects": {
-    "D:\\1MIS COSAS\\Facultad\\Proyecto F\\BackEnd\\APIProyecto\\APIProyecto.csproj": {
+    "C:\\Users\\mgonz\\OneDrive\\Escritorio\\Proyecto Final - Para tabajar\\ProyectoF\\BackEnd\\APIProyecto\\APIProyecto.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\1MIS COSAS\\Facultad\\Proyecto F\\BackEnd\\APIProyecto\\APIProyecto.csproj",
+        "projectUniqueName": "C:\\Users\\mgonz\\OneDrive\\Escritorio\\Proyecto Final - Para tabajar\\ProyectoF\\BackEnd\\APIProyecto\\APIProyecto.csproj",
         "projectName": "APIProyecto",
-        "projectPath": "D:\\1MIS COSAS\\Facultad\\Proyecto F\\BackEnd\\APIProyecto\\APIProyecto.csproj",
-        "packagesPath": "C:\\Users\\Facu\\.nuget\\packages\\",
-        "outputPath": "D:\\1MIS COSAS\\Facultad\\Proyecto F\\BackEnd\\APIProyecto\\obj\\",
+        "projectPath": "C:\\Users\\mgonz\\OneDrive\\Escritorio\\Proyecto Final - Para tabajar\\ProyectoF\\BackEnd\\APIProyecto\\APIProyecto.csproj",
+        "packagesPath": "C:\\Users\\mgonz\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\mgonz\\OneDrive\\Escritorio\\Proyecto Final - Para tabajar\\ProyectoF\\BackEnd\\APIProyecto\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Facu\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\mgonz\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
@@ -38,7 +38,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.300"
+        "SdkAnalysisLevel": "9.0.100"
       },
       "frameworks": {
         "net9.0": {
@@ -82,7 +82,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.317/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.101/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

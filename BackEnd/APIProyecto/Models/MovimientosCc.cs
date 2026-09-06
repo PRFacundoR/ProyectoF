@@ -15,11 +15,11 @@ public partial class MovimientosCc
 
     public int? IdCompra { get; set; }
 
-    public int IdProveedor { get; set; }
+    public int? IdNota { get; set; }
 
     public int? IdOrden { get; set; }
 
-    public int? IdNota { get; set; }
+    public int IdProveedor { get; set; }
 
     public virtual Compra? IdCompraNavigation { get; set; }
 

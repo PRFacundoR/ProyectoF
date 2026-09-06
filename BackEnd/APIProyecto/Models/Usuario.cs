@@ -23,7 +23,7 @@ public partial class Usuario
 
     public virtual ICollection<OrdenesPago> OrdenesPagoIdAutorizaNavigations { get; set; } = new List<OrdenesPago>();
 
-    public virtual ICollection<OrdenesPago> OrdenesPagoIdUsuarioNavigations { get; set; } = new List<OrdenesPago>();
+    public virtual ICollection<OrdenesPago> OrdenesPagoIdEmisorNavigations { get; set; } = new List<OrdenesPago>();
 
     public virtual ICollection<RecuperacionPassword> RecuperacionPasswords { get; set; } = new List<RecuperacionPassword>();
 }

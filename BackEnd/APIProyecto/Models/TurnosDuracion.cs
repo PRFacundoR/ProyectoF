@@ -9,7 +9,7 @@ public partial class TurnosDuracion
 
     public int IdEmpleado { get; set; }
 
-    public DateOnly? Inicio { get; set; }
+    public DateOnly Inicio { get; set; }
 
     public DateOnly? Fin { get; set; }
 
