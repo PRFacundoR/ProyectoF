@@ -25,11 +25,9 @@ public partial class Proveedore
 
     public bool? Activo { get; set; }
 
-    public virtual ICollection<Compra> Compras { get; set; } = new List<Compra>();
+    public virtual ICollection<DetalleCompra> DetalleCompras { get; set; } = new List<DetalleCompra>();
 
     public virtual ICollection<MovimientosCc> MovimientosCcs { get; set; } = new List<MovimientosCc>();
-
-    public virtual ICollection<NotasCreditoDebito> NotasCreditoDebitos { get; set; } = new List<NotasCreditoDebito>();
 
     public virtual ICollection<OrdenesPago> OrdenesPagos { get; set; } = new List<OrdenesPago>();
 

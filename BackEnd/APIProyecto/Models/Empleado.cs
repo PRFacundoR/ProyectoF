@@ -15,7 +15,7 @@ public partial class Empleado
 
     public string? FirmaDig { get; set; }
 
-    public bool? Activo { get; set; }
+    public bool Activo { get; set; }
 
     public virtual ICollection<Tarea> Tareas { get; set; } = new List<Tarea>();
 

@@ -9,19 +9,13 @@ public partial class Compra
 
     public int IdCompra { get; set; }
 
-    public int IdProveedor { get; set; }
-
     public DateOnly FechaCompra { get; set; }
-
-    public string? CondicionPago { get; set; }
 
     public virtual ICollection<DetalleCompra> DetalleCompras { get; set; } = new List<DetalleCompra>();
 
     public virtual ICollection<DetalleOrdenesPago> DetalleOrdenesPagos { get; set; } = new List<DetalleOrdenesPago>();
 
-    public virtual Factura? Factura { get; set; }
-
-    public virtual Proveedore IdProveedorNavigation { get; set; } = null!;
+    public virtual ICollection<Factura> Facturas { get; set; } = new List<Factura>();
 
     public virtual Usuario IdUsuarioNavigation { get; set; } = null!;
 
