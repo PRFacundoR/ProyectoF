@@ -13,7 +13,7 @@ public partial class RecuperacionPassword
 
     public DateTime FechaExpiracion { get; set; }
 
-    public bool? Usado { get; set; }
+    public bool Usado { get; set; }
 
     public int IdUsuario { get; set; }
 

@@ -14,19 +14,27 @@ public partial class ComprasDbContext : DbContext
 
     public virtual DbSet<Bitacora> Bitacoras { get; set; }
 
+    public virtual DbSet<Catalogo> Catalogos { get; set; }
+
     public virtual DbSet<Categoria> Categorias { get; set; }
 
-    public virtual DbSet<Compra> Compras { get; set; }
+    public virtual DbSet<ComprasPendiente> ComprasPendientes { get; set; }
+
+    public virtual DbSet<ComprasRealizada> ComprasRealizadas { get; set; }
 
     public virtual DbSet<Deposito> Depositos { get; set; }
 
-    public virtual DbSet<DetalleCompra> DetalleCompras { get; set; }
+    public virtual DbSet<DetalleCompraP> DetalleCompraPs { get; set; }
+
+    public virtual DbSet<DetalleCompraR> DetalleCompraRs { get; set; }
 
     public virtual DbSet<DetalleOrdenesPago> DetalleOrdenesPagos { get; set; }
 
     public virtual DbSet<Empleado> Empleados { get; set; }
 
     public virtual DbSet<Factura> Facturas { get; set; }
+
+    public virtual DbSet<ItemsPedido> ItemsPedidos { get; set; }
 
     public virtual DbSet<MetodosPagoOrden> MetodosPagoOrdens { get; set; }
 
@@ -36,11 +44,11 @@ public partial class ComprasDbContext : DbContext
 
     public virtual DbSet<OrdenesPago> OrdenesPagos { get; set; }
 
+    public virtual DbSet<Pedido> Pedidos { get; set; }
+
     public virtual DbSet<Permiso> Permisos { get; set; }
 
     public virtual DbSet<Producto> Productos { get; set; }
-
-    public virtual DbSet<ProductosProveedor> ProductosProveedors { get; set; }
 
     public virtual DbSet<Proveedore> Proveedores { get; set; }
 
@@ -48,7 +56,7 @@ public partial class ComprasDbContext : DbContext
 
     public virtual DbSet<Role> Roles { get; set; }
 
-    public virtual DbSet<StockUbicacion> StockUbicacions { get; set; }
+    public virtual DbSet<Stock> Stocks { get; set; }
 
     public virtual DbSet<Tarea> Tareas { get; set; }
 
@@ -93,6 +101,38 @@ public partial class ComprasDbContext : DbContext
                 .HasConstraintName("fk_audit_usr");
         });
 
+        modelBuilder.Entity<Catalogo>(entity =>
+        {
+            entity.HasKey(e => new { e.IdProducto, e.IdProveedor }).HasName("pk_catalogo");
+
+            entity.ToTable("catalogo", "logistica");
+
+            entity.HasIndex(e => e.CBarrasProveedor, "catalogo_c_barras_proveedor_key").IsUnique();
+
+            entity.Property(e => e.IdProducto).HasColumnName("id_producto");
+            entity.Property(e => e.IdProveedor).HasColumnName("id_proveedor");
+            entity.Property(e => e.CBarrasProveedor)
+                .HasMaxLength(50)
+                .HasColumnName("c_barras_proveedor");
+            entity.Property(e => e.FechaActualizacion)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("timestamp without time zone")
+                .HasColumnName("fecha_actualizacion");
+            entity.Property(e => e.PrecioCosto)
+                .HasPrecision(12, 2)
+                .HasColumnName("precio_costo");
+
+            entity.HasOne(d => d.IdProductoNavigation).WithMany(p => p.Catalogos)
+                .HasForeignKey(d => d.IdProducto)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_catalogo_prod");
+
+            entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.Catalogos)
+                .HasForeignKey(d => d.IdProveedor)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_catalogo_prov");
+        });
+
         modelBuilder.Entity<Categoria>(entity =>
         {
             entity.HasKey(e => e.IdCategoria).HasName("categorias_pkey");
@@ -105,26 +145,57 @@ public partial class ComprasDbContext : DbContext
                 .HasColumnName("nombre");
         });
 
-        modelBuilder.Entity<Compra>(entity =>
+        modelBuilder.Entity<ComprasPendiente>(entity =>
         {
-            entity.HasKey(e => e.IdCompra).HasName("compras_pkey");
+            entity.HasKey(e => e.IdCompra).HasName("compras_pendientes_pkey");
 
-            entity.ToTable("compras", "finanzas");
+            entity.ToTable("compras_pendientes", "finanzas");
 
             entity.Property(e => e.IdCompra).HasColumnName("id_compra");
-            entity.Property(e => e.CondicionPago)
-                .HasMaxLength(20)
-                .HasColumnName("condicion_pago");
             entity.Property(e => e.FechaCompra).HasColumnName("fecha_compra");
-            entity.Property(e => e.IdProveedor).HasColumnName("id_proveedor");
+            entity.Property(e => e.FechaEntrega).HasColumnName("fecha_entrega");
+            entity.Property(e => e.FechaPedido).HasColumnName("fecha_pedido");
+            entity.Property(e => e.IdFactura).HasColumnName("id_factura");
+            entity.Property(e => e.IdUsuario).HasColumnName("id_usuario");
+            entity.Property(e => e.Incompleta)
+                .HasDefaultValue(true)
+                .HasColumnName("incompleta");
+
+            entity.HasOne(d => d.IdFacturaNavigation).WithMany(p => p.ComprasPendientes)
+                .HasForeignKey(d => d.IdFactura)
+                .HasConstraintName("fk_compras_fact");
+
+            entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.ComprasPendientes)
+                .HasForeignKey(d => d.IdUsuario)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_compra_usr");
+        });
+
+        modelBuilder.Entity<ComprasRealizada>(entity =>
+        {
+            entity.HasKey(e => e.IdCompra).HasName("compras_realizadas_pkey");
+
+            entity.ToTable("compras_realizadas", "finanzas");
+
+            entity.Property(e => e.IdCompra).HasColumnName("id_compra");
+            entity.Property(e => e.FechaCompra).HasColumnName("fecha_compra");
+            entity.Property(e => e.FechaEntrega).HasColumnName("fecha_entrega");
+            entity.Property(e => e.FechaPedido).HasColumnName("fecha_pedido");
+            entity.Property(e => e.IdFactura).HasColumnName("id_factura");
+            entity.Property(e => e.IdPedido).HasColumnName("id_pedido");
             entity.Property(e => e.IdUsuario).HasColumnName("id_usuario");
 
-            entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.Compras)
-                .HasForeignKey(d => d.IdProveedor)
+            entity.HasOne(d => d.IdFacturaNavigation).WithMany(p => p.ComprasRealizada)
+                .HasForeignKey(d => d.IdFactura)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_compra_prov");
+                .HasConstraintName("fk_compras_fact");
 
-            entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.Compras)
+            entity.HasOne(d => d.IdPedidoNavigation).WithMany(p => p.ComprasRealizada)
+                .HasForeignKey(d => d.IdPedido)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_pedido");
+
+            entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.ComprasRealizada)
                 .HasForeignKey(d => d.IdUsuario)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_compra_usr");
@@ -148,51 +219,79 @@ public partial class ComprasDbContext : DbContext
                 .HasColumnName("nombre");
         });
 
-        modelBuilder.Entity<DetalleCompra>(entity =>
+        modelBuilder.Entity<DetalleCompraP>(entity =>
         {
-            entity.HasKey(e => new { e.IdCompra, e.IdProducto }).HasName("pk_detalle_compra");
+            entity.HasKey(e => new { e.IdCompra, e.CBarrasProveedor }).HasName("pk_detalle_compra_p");
 
-            entity.ToTable("detalle_compras", "finanzas");
+            entity.ToTable("detalle_compra_p", "finanzas");
 
             entity.Property(e => e.IdCompra).HasColumnName("id_compra");
-            entity.Property(e => e.IdProducto).HasColumnName("id_producto");
+            entity.Property(e => e.CBarrasProveedor)
+                .HasMaxLength(50)
+                .HasColumnName("c_barras_proveedor");
             entity.Property(e => e.Cantidad).HasColumnName("cantidad");
             entity.Property(e => e.PrecioUnitario)
                 .HasPrecision(12, 2)
                 .HasColumnName("precio_unitario");
 
-            entity.HasOne(d => d.IdCompraNavigation).WithMany(p => p.DetalleCompras)
-                .HasForeignKey(d => d.IdCompra)
+            entity.HasOne(d => d.CBarrasProveedorNavigation).WithMany(p => p.DetalleCompraPs)
+                .HasPrincipalKey(p => p.CBarrasProveedor)
+                .HasForeignKey(d => d.CBarrasProveedor)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_detalle_compra_compra");
+                .HasConstraintName("fk_detalle_compra_p_cat");
 
-            entity.HasOne(d => d.IdProductoNavigation).WithMany(p => p.DetalleCompras)
-                .HasForeignKey(d => d.IdProducto)
+            entity.HasOne(d => d.IdCompraNavigation).WithMany(p => p.DetalleCompraPs)
+                .HasForeignKey(d => d.IdCompra)
+                .HasConstraintName("fk_detalle_compra_pend");
+        });
+
+        modelBuilder.Entity<DetalleCompraR>(entity =>
+        {
+            entity.HasKey(e => new { e.IdCompra, e.CBarrasProveedor }).HasName("pk_detalle_compra_r");
+
+            entity.ToTable("detalle_compra_r", "finanzas");
+
+            entity.Property(e => e.IdCompra).HasColumnName("id_compra");
+            entity.Property(e => e.CBarrasProveedor)
+                .HasMaxLength(50)
+                .HasColumnName("c_barras_proveedor");
+            entity.Property(e => e.Cantidad).HasColumnName("cantidad");
+            entity.Property(e => e.PrecioUnitario)
+                .HasPrecision(12, 2)
+                .HasColumnName("precio_unitario");
+
+            entity.HasOne(d => d.CBarrasProveedorNavigation).WithMany(p => p.DetalleCompraRs)
+                .HasPrincipalKey(p => p.CBarrasProveedor)
+                .HasForeignKey(d => d.CBarrasProveedor)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_detalle_compra_prod");
+                .HasConstraintName("fk_detalle_compra_r_cat");
+
+            entity.HasOne(d => d.IdCompraNavigation).WithMany(p => p.DetalleCompraRs)
+                .HasForeignKey(d => d.IdCompra)
+                .HasConstraintName("fk_detalle_compra_real");
         });
 
         modelBuilder.Entity<DetalleOrdenesPago>(entity =>
         {
-            entity.HasKey(e => new { e.IdOrden, e.IdCompra }).HasName("pk_detalles_ordenes_pago");
+            entity.HasKey(e => new { e.IdOrden, e.IdFactura }).HasName("pk_detalles_ordenes_pago");
 
             entity.ToTable("detalle_ordenes_pago", "finanzas");
 
             entity.Property(e => e.IdOrden).HasColumnName("id_orden");
-            entity.Property(e => e.IdCompra).HasColumnName("id_compra");
+            entity.Property(e => e.IdFactura).HasColumnName("id_factura");
             entity.Property(e => e.MontoAsignado)
                 .HasPrecision(12, 2)
                 .HasColumnName("monto_asignado");
 
-            entity.HasOne(d => d.IdCompraNavigation).WithMany(p => p.DetalleOrdenesPagos)
-                .HasForeignKey(d => d.IdCompra)
+            entity.HasOne(d => d.IdFacturaNavigation).WithMany(p => p.DetalleOrdenesPagos)
+                .HasForeignKey(d => d.IdFactura)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_detalles_ordenes_pago_compra");
+                .HasConstraintName("fk_detalles_ordenes_pago_fact");
 
             entity.HasOne(d => d.IdOrdenNavigation).WithMany(p => p.DetalleOrdenesPagos)
                 .HasForeignKey(d => d.IdOrden)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_detalles_ordenes_pago_orden");
+                .HasConstraintName("fk_detalles_ordenes_pago_ord");
         });
 
         modelBuilder.Entity<Empleado>(entity =>
@@ -204,7 +303,9 @@ public partial class ComprasDbContext : DbContext
             entity.HasIndex(e => e.Dni, "empleados_dni_key").IsUnique();
 
             entity.Property(e => e.IdEmpleado).HasColumnName("id_empleado");
-            entity.Property(e => e.Activo).HasColumnName("activo");
+            entity.Property(e => e.Activo)
+                .HasDefaultValue(true)
+                .HasColumnName("activo");
             entity.Property(e => e.Apellido)
                 .HasMaxLength(100)
                 .HasColumnName("apellido");
@@ -223,19 +324,19 @@ public partial class ComprasDbContext : DbContext
 
             entity.ToTable("facturas", "finanzas");
 
-            entity.HasIndex(e => e.IdCompra, "facturas_id_compra_key").IsUnique();
-
             entity.Property(e => e.IdFactura).HasColumnName("id_factura");
             entity.Property(e => e.ArchivoAdjunto)
                 .HasMaxLength(255)
                 .HasColumnName("archivo_adjunto");
+            entity.Property(e => e.CondicionPago)
+                .HasMaxLength(20)
+                .HasColumnName("condicion_pago");
             entity.Property(e => e.Estado)
                 .HasMaxLength(20)
                 .HasDefaultValueSql("'Impaga'::character varying")
                 .HasColumnName("estado");
             entity.Property(e => e.FechaEmision).HasColumnName("fecha_emision");
             entity.Property(e => e.FechaVencimiento).HasColumnName("fecha_vencimiento");
-            entity.Property(e => e.IdCompra).HasColumnName("id_compra");
             entity.Property(e => e.Iva)
                 .HasPrecision(5, 2)
                 .HasColumnName("iva");
@@ -246,13 +347,34 @@ public partial class ComprasDbContext : DbContext
                 .HasMaxLength(20)
                 .HasColumnName("nro_comprobante");
             entity.Property(e => e.TipoComprobante)
-                .HasMaxLength(20)
+                .HasMaxLength(10)
                 .HasColumnName("tipo_comprobante");
+        });
 
-            entity.HasOne(d => d.IdCompraNavigation).WithOne(p => p.Factura)
-                .HasForeignKey<Factura>(d => d.IdCompra)
+        modelBuilder.Entity<ItemsPedido>(entity =>
+        {
+            entity.HasKey(e => new { e.IdPedido, e.CBarrasProveedor }).HasName("pk_items_pedidos");
+
+            entity.ToTable("items_pedidos", "finanzas");
+
+            entity.Property(e => e.IdPedido).HasColumnName("id_pedido");
+            entity.Property(e => e.CBarrasProveedor)
+                .HasMaxLength(50)
+                .HasColumnName("c_barras_proveedor");
+            entity.Property(e => e.Cantidad).HasColumnName("cantidad");
+            entity.Property(e => e.PrecioUnitario)
+                .HasPrecision(12, 2)
+                .HasColumnName("precio_unitario");
+
+            entity.HasOne(d => d.CBarrasProveedorNavigation).WithMany(p => p.ItemsPedidos)
+                .HasPrincipalKey(p => p.CBarrasProveedor)
+                .HasForeignKey(d => d.CBarrasProveedor)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_facturas_comp");
+                .HasConstraintName("fk_items_pedidos_cat");
+
+            entity.HasOne(d => d.IdPedidoNavigation).WithMany(p => p.ItemsPedidos)
+                .HasForeignKey(d => d.IdPedido)
+                .HasConstraintName("fk_items_pedidos_ped");
         });
 
         modelBuilder.Entity<MetodosPagoOrden>(entity =>
@@ -290,7 +412,7 @@ public partial class ComprasDbContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("timestamp without time zone")
                 .HasColumnName("fecha_hora");
-            entity.Property(e => e.IdCompra).HasColumnName("id_compra");
+            entity.Property(e => e.IdFactura).HasColumnName("id_factura");
             entity.Property(e => e.IdNota).HasColumnName("id_nota");
             entity.Property(e => e.IdOrden).HasColumnName("id_orden");
             entity.Property(e => e.IdProveedor).HasColumnName("id_proveedor");
@@ -301,9 +423,9 @@ public partial class ComprasDbContext : DbContext
                 .HasMaxLength(30)
                 .HasColumnName("tipo_movimiento");
 
-            entity.HasOne(d => d.IdCompraNavigation).WithMany(p => p.MovimientosCcs)
-                .HasForeignKey(d => d.IdCompra)
-                .HasConstraintName("fk_movimientos_cc_compra");
+            entity.HasOne(d => d.IdFacturaNavigation).WithMany(p => p.MovimientosCcs)
+                .HasForeignKey(d => d.IdFactura)
+                .HasConstraintName("fk_movimientos_cc_fact");
 
             entity.HasOne(d => d.IdNotaNavigation).WithMany(p => p.MovimientosCcs)
                 .HasForeignKey(d => d.IdNota)
@@ -311,7 +433,7 @@ public partial class ComprasDbContext : DbContext
 
             entity.HasOne(d => d.IdOrdenNavigation).WithMany(p => p.MovimientosCcs)
                 .HasForeignKey(d => d.IdOrden)
-                .HasConstraintName("fk_movimientos_cc_orden");
+                .HasConstraintName("fk_movimientos_cc_ord");
 
             entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.MovimientosCcs)
                 .HasForeignKey(d => d.IdProveedor)
@@ -325,12 +447,14 @@ public partial class ComprasDbContext : DbContext
 
             entity.ToTable("notas_credito_debito", "finanzas");
 
+            entity.HasIndex(e => new { e.IdFactura, e.TipoNota }, "uq_notas_unicas").IsUnique();
+
             entity.Property(e => e.IdNota).HasColumnName("id_nota");
             entity.Property(e => e.ArchivoAdjunto)
                 .HasMaxLength(255)
                 .HasColumnName("archivo_adjunto");
             entity.Property(e => e.Fecha).HasColumnName("fecha");
-            entity.Property(e => e.IdProveedor).HasColumnName("id_proveedor");
+            entity.Property(e => e.IdFactura).HasColumnName("id_factura");
             entity.Property(e => e.Monto)
                 .HasPrecision(12, 2)
                 .HasColumnName("monto");
@@ -342,10 +466,10 @@ public partial class ComprasDbContext : DbContext
                 .HasMaxLength(10)
                 .HasColumnName("tipo_nota");
 
-            entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.NotasCreditoDebitos)
-                .HasForeignKey(d => d.IdProveedor)
+            entity.HasOne(d => d.IdFacturaNavigation).WithMany(p => p.NotasCreditoDebitos)
+                .HasForeignKey(d => d.IdFactura)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_nota_prov");
+                .HasConstraintName("fk_nota_fact");
         });
 
         modelBuilder.Entity<OrdenesPago>(entity =>
@@ -362,8 +486,8 @@ public partial class ComprasDbContext : DbContext
                 .HasDefaultValueSql("CURRENT_DATE")
                 .HasColumnName("fecha_emision");
             entity.Property(e => e.IdAutoriza).HasColumnName("id_autoriza");
+            entity.Property(e => e.IdEmisor).HasColumnName("id_emisor");
             entity.Property(e => e.IdProveedor).HasColumnName("id_proveedor");
-            entity.Property(e => e.IdUsuario).HasColumnName("id_usuario");
             entity.Property(e => e.MontoTotal)
                 .HasPrecision(12, 2)
                 .HasColumnName("monto_total");
@@ -371,17 +495,37 @@ public partial class ComprasDbContext : DbContext
             entity.HasOne(d => d.IdAutorizaNavigation).WithMany(p => p.OrdenesPagoIdAutorizaNavigations)
                 .HasForeignKey(d => d.IdAutoriza)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_ordenes_pago_prov1");
+                .HasConstraintName("fk_ordenes_pago_aut");
+
+            entity.HasOne(d => d.IdEmisorNavigation).WithMany(p => p.OrdenesPagoIdEmisorNavigations)
+                .HasForeignKey(d => d.IdEmisor)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("fk_ordenes_pago_emi");
 
             entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.OrdenesPagos)
                 .HasForeignKey(d => d.IdProveedor)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_ordenes_pago_prov");
+        });
 
-            entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.OrdenesPagoIdUsuarioNavigations)
+        modelBuilder.Entity<Pedido>(entity =>
+        {
+            entity.HasKey(e => e.IdPedido).HasName("pedidos_pkey");
+
+            entity.ToTable("pedidos", "finanzas");
+
+            entity.Property(e => e.IdPedido).HasColumnName("id_pedido");
+            entity.Property(e => e.Estado)
+                .HasMaxLength(25)
+                .HasDefaultValueSql("'Pendiente'::character varying")
+                .HasColumnName("estado");
+            entity.Property(e => e.FechaPedido).HasColumnName("fecha_pedido");
+            entity.Property(e => e.IdUsuario).HasColumnName("id_usuario");
+
+            entity.HasOne(d => d.IdUsuarioNavigation).WithMany(p => p.Pedidos)
                 .HasForeignKey(d => d.IdUsuario)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_ordenes_pago_usr");
+                .HasConstraintName("fk_compra_usr");
         });
 
         modelBuilder.Entity<Permiso>(entity =>
@@ -425,7 +569,7 @@ public partial class ComprasDbContext : DbContext
 
             entity.HasMany(d => d.IdCategoria).WithMany(p => p.IdProductos)
                 .UsingEntity<Dictionary<string, object>>(
-                    "ProdcutoCategorium",
+                    "Clasificacione",
                     r => r.HasOne<Categoria>().WithMany()
                         .HasForeignKey("IdCategoria")
                         .OnDelete(DeleteBehavior.ClientSetNull)
@@ -437,37 +581,10 @@ public partial class ComprasDbContext : DbContext
                     j =>
                     {
                         j.HasKey("IdProducto", "IdCategoria").HasName("pk_producto_categoria");
-                        j.ToTable("prodcuto_categoria", "logistica");
+                        j.ToTable("clasificaciones", "logistica");
                         j.IndexerProperty<int>("IdProducto").HasColumnName("id_producto");
                         j.IndexerProperty<int>("IdCategoria").HasColumnName("id_categoria");
                     });
-        });
-
-        modelBuilder.Entity<ProductosProveedor>(entity =>
-        {
-            entity.HasKey(e => new { e.IdProducto, e.IdProveedor }).HasName("pk_productos_proveedor");
-
-            entity.ToTable("productos_proveedor", "logistica");
-
-            entity.Property(e => e.IdProducto).HasColumnName("id_producto");
-            entity.Property(e => e.IdProveedor).HasColumnName("id_proveedor");
-            entity.Property(e => e.FechaActualizacion)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnType("timestamp without time zone")
-                .HasColumnName("fecha_actualizacion");
-            entity.Property(e => e.PrecioCosto)
-                .HasPrecision(12, 2)
-                .HasColumnName("precio_costo");
-
-            entity.HasOne(d => d.IdProductoNavigation).WithMany(p => p.ProductosProveedors)
-                .HasForeignKey(d => d.IdProducto)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_productos_proveedor_prod");
-
-            entity.HasOne(d => d.IdProveedorNavigation).WithMany(p => p.ProductosProveedors)
-                .HasForeignKey(d => d.IdProveedor)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_productos_proveedor_prov");
         });
 
         modelBuilder.Entity<Proveedore>(entity =>
@@ -574,11 +691,11 @@ public partial class ComprasDbContext : DbContext
                     });
         });
 
-        modelBuilder.Entity<StockUbicacion>(entity =>
+        modelBuilder.Entity<Stock>(entity =>
         {
-            entity.HasKey(e => new { e.IdProducto, e.IdUbicacion }).HasName("pk_stock_ubicacion");
+            entity.HasKey(e => new { e.IdProducto, e.IdUbicacion }).HasName("pk_stock");
 
-            entity.ToTable("stock_ubicacion", "logistica");
+            entity.ToTable("stock", "logistica");
 
             entity.Property(e => e.IdProducto).HasColumnName("id_producto");
             entity.Property(e => e.IdUbicacion).HasColumnName("id_ubicacion");
@@ -586,15 +703,15 @@ public partial class ComprasDbContext : DbContext
                 .HasDefaultValue(0)
                 .HasColumnName("cantidad");
 
-            entity.HasOne(d => d.IdProductoNavigation).WithMany(p => p.StockUbicacions)
+            entity.HasOne(d => d.IdProductoNavigation).WithMany(p => p.Stocks)
                 .HasForeignKey(d => d.IdProducto)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_stock_ubicacion_prod");
+                .HasConstraintName("fk_stock_prod");
 
-            entity.HasOne(d => d.IdUbicacionNavigation).WithMany(p => p.StockUbicacions)
+            entity.HasOne(d => d.IdUbicacionNavigation).WithMany(p => p.Stocks)
                 .HasForeignKey(d => d.IdUbicacion)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("fk_stock_ubicacion_ubic");
+                .HasConstraintName("fk_stock_ubic");
         });
 
         modelBuilder.Entity<Tarea>(entity =>
@@ -632,14 +749,14 @@ public partial class ComprasDbContext : DbContext
 
         modelBuilder.Entity<TurnosDuracion>(entity =>
         {
-            entity.HasKey(e => new { e.IdTurno, e.IdEmpleado }).HasName("pk_turnos_duracion");
+            entity.HasKey(e => new { e.IdTurno, e.IdEmpleado, e.Inicio }).HasName("pk_turnos_duracion");
 
             entity.ToTable("turnos_duracion", "seguridad");
 
             entity.Property(e => e.IdTurno).HasColumnName("id_turno");
             entity.Property(e => e.IdEmpleado).HasColumnName("id_empleado");
-            entity.Property(e => e.Fin).HasColumnName("fin");
             entity.Property(e => e.Inicio).HasColumnName("inicio");
+            entity.Property(e => e.Fin).HasColumnName("fin");
 
             entity.HasOne(d => d.IdEmpleadoNavigation).WithMany(p => p.TurnosDuracions)
                 .HasForeignKey(d => d.IdEmpleado)
@@ -662,9 +779,7 @@ public partial class ComprasDbContext : DbContext
             entity.Property(e => e.Activo)
                 .HasDefaultValue(true)
                 .HasColumnName("activo");
-            entity.Property(e => e.Estanteria)
-                .HasMaxLength(50)
-                .HasColumnName("estanteria");
+            entity.Property(e => e.Estanteria).HasColumnName("estanteria");
             entity.Property(e => e.IdDeposito).HasColumnName("id_deposito");
             entity.Property(e => e.Sector)
                 .HasMaxLength(50)

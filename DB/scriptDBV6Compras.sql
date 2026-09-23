@@ -1,13 +1,11 @@
 
 -- ==============================================================================
 -- 1. Esquemas
-
 CREATE SCHEMA IF NOT EXISTS seguridad;
 CREATE SCHEMA IF NOT EXISTS logistica;        
 CREATE SCHEMA IF NOT EXISTS finanzas; 
 CREATE SCHEMA IF NOT EXISTS auditoria;
 -- ==============================================================================
-
 
 -- ==============================================================================
 -- 2. Seguridad (Empleados, Usuarios, Proveedores, Tareas, Roles, Permisos, Turnos y Contraseñas) 
@@ -48,8 +46,8 @@ CREATE TABLE seguridad.roles(id_rol SERIAL PRIMARY KEY,
                              nombre VARCHAR(50) UNIQUE NOT NULL,
 							 descripcion VARCHAR(200) NOT NULL);
 
-CREATE TABLE seguridad.roles_permisos(id_rol INTEGER NOT NULL,
-                                      id_permiso INTEGER NOT NULL,
+CREATE TABLE seguridad.roles_permisos(id_rol INTEGER,
+                                      id_permiso INTEGER,
 									  CONSTRAINT pk_roles_permisos PRIMARY KEY (id_rol, id_permiso),
 									  CONSTRAINT fk_roles_permisos_rol FOREIGN KEY (id_rol) REFERENCES seguridad.roles(id_rol) ON DELETE CASCADE,
 									  CONSTRAINT fk_roles_permisos_perm FOREIGN KEY (id_permiso) REFERENCES seguridad.permisos(id_permiso) ON DELETE CASCADE);
@@ -67,7 +65,7 @@ CREATE TABLE seguridad.recuperacion_passwords(id_recuperacion SERIAL PRIMARY KEY
                                               codigo_token VARCHAR(6) NOT NULL, 
                                               fecha_generacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                               fecha_expiracion TIMESTAMP NOT NULL, 
-                                              usado BOOLEAN DEFAULT FALSE, 
+                                              usado BOOLEAN DEFAULT FALSE NOT NULL, 
                                               id_usuario INTEGER NOT NULL,
                                               CONSTRAINT fk_recuperacion_usu FOREIGN KEY (id_usuario) REFERENCES seguridad.usuarios(id_usuario));
 
@@ -81,7 +79,7 @@ CREATE TABLE seguridad.proveedores(id_proveedor SERIAL PRIMARY KEY,
                                    domicilio VARCHAR(200) NOT NULL,
                                    telefono VARCHAR(50),
                                    email VARCHAR(100) NOT NULL,
-                                   activo BOOLEAN DEFAULT TRUE);
+                                   activo BOOLEAN DEFAULT TRUE NOT NULL);
 -- ==============================================================================
 
 
@@ -92,91 +90,129 @@ CREATE TABLE seguridad.proveedores(id_proveedor SERIAL PRIMARY KEY,
 CREATE TABLE logistica.productos(id_producto SERIAL PRIMARY KEY,
                                  nombre VARCHAR(150) NOT NULL,
                                  codigo_barras VARCHAR(50) UNIQUE,
-                                 stock_minimo INT DEFAULT 0 CHECK (stock_minimo >= 0),
-                                 activo BOOLEAN DEFAULT TRUE);
+                                 stock_minimo INT DEFAULT 0 CHECK (stock_minimo >= 0) NOT NULL,
+                                 activo BOOLEAN DEFAULT TRUE NOT NULL);
 
 CREATE TABLE logistica.categorias(id_categoria SERIAL PRIMARY KEY,
-                                  nombre VARCHAR(50));
+                                  nombre VARCHAR(50) NOT NULL);
 
-CREATE TABLE logistica.productos_categorias(id_producto INTEGER,
-                                            id_categoria INTEGER,
-                                            CONSTRAINT pk_producto_categoria PRIMARY KEY (id_producto, id_categoria),
-                                            CONSTRAINT fk_producto_categoria_prod FOREIGN KEY (id_producto) REFERENCES logistica.productos(id_producto),
-                                            CONSTRAINT fk_producto_categoria_cat FOREIGN KEY (id_categoria) REFERENCES logistica.categorias(id_categoria));
+CREATE TABLE logistica.clasificaciones(id_producto INTEGER,
+                                       id_categoria INTEGER,
+                                       CONSTRAINT pk_producto_categoria PRIMARY KEY (id_producto, id_categoria),
+                                       CONSTRAINT fk_producto_categoria_prod FOREIGN KEY (id_producto) REFERENCES logistica.productos(id_producto),
+                                       CONSTRAINT fk_producto_categoria_cat FOREIGN KEY (id_categoria) REFERENCES logistica.categorias(id_categoria));
 
 CREATE TABLE logistica.depositos(id_deposito SERIAL PRIMARY KEY,
                                  nombre VARCHAR(100),
                                  direccion VARCHAR(200) NOT NULL,
-                                 activo BOOLEAN DEFAULT TRUE);
+                                 activo BOOLEAN DEFAULT TRUE NOT NULL);
 
 CREATE TABLE logistica.ubicaciones(id_ubicacion SERIAL PRIMARY KEY,
                                    sector VARCHAR(50) NOT NULL,
-                                   estanteria VARCHAR(50) NOT NULL,
-                                   activo BOOLEAN DEFAULT TRUE,
+                                   estanteria SMALLINT NOT NULL,
+                                   activo BOOLEAN DEFAULT TRUE NOT NULL,
                                    id_deposito INT NOT NULL,
                                    CONSTRAINT fk_ubicacion_depo FOREIGN KEY (id_deposito) REFERENCES logistica.depositos(id_deposito));
 
-CREATE TABLE logistica.stock_ubicacion(id_ubicacion INTEGER NOT NULL,
-                                       id_producto INTEGER NOT NULL,
-                                       cantidad INTEGER DEFAULT 0 CHECK (cantidad >= 0),
-                                       CONSTRAINT pk_stock_ubicacion PRIMARY KEY (id_producto, id_ubicacion),
-                                       CONSTRAINT fk_stock_ubicacion_prod FOREIGN KEY (id_producto) REFERENCES logistica.productos(id_producto),
-                                       CONSTRAINT fk_stock_ubicacion_ubic FOREIGN KEY (id_ubicacion) REFERENCES logistica.ubicaciones(id_ubicacion));
+CREATE TABLE logistica.stock(id_ubicacion INTEGER,
+                             id_producto INTEGER,
+                             cantidad INTEGER DEFAULT 0 CHECK (cantidad >= 0) NOT NULL,
+                             CONSTRAINT pk_stock PRIMARY KEY (id_producto, id_ubicacion),
+                             CONSTRAINT fk_stock_prod FOREIGN KEY (id_producto) REFERENCES logistica.productos(id_producto),
+                             CONSTRAINT fk_stock_ubic FOREIGN KEY (id_ubicacion) REFERENCES logistica.ubicaciones(id_ubicacion));
 
-CREATE TABLE logistica.productos_proveedor(id_producto INTEGER NOT NULL,
-                                           id_proveedor INTEGER NOT NULL,
-                                           precio_costo DECIMAL(12,2) NOT NULL CHECK (precio_costo >= 0),
-                                           fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                                           CONSTRAINT pk_productos_proveedor PRIMARY KEY (id_producto, id_proveedor),
-                                           CONSTRAINT fk_productos_proveedor_prod FOREIGN KEY (id_producto) REFERENCES logistica.productos(id_producto),
-                                           CONSTRAINT fk_productos_proveedor_prov FOREIGN KEY (id_proveedor) REFERENCES seguridad.proveedores(id_proveedor));
+CREATE TABLE logistica.catalogo(c_barras_proveedor VARCHAR(50) UNIQUE NOT NULL,
+                                id_proveedor INTEGER NOT NULL,
+                                id_producto INTEGER NOT NULL,
+                                precio_costo DECIMAL(12,2) CHECK (precio_costo >= 0) NOT NULL,
+                                fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                CONSTRAINT pk_catalogo PRIMARY KEY (id_producto, id_proveedor),
+                                CONSTRAINT fk_catalogo_prod FOREIGN KEY (id_producto) REFERENCES logistica.productos(id_producto),
+                                CONSTRAINT fk_catalogo_prov FOREIGN KEY (id_proveedor) REFERENCES seguridad.proveedores(id_proveedor));
 -- ==============================================================================
 
+-- seguir desde aqui
 
 -- ==============================================================================
 -- 4. Finanzas (Compras, Facturas, Ordenes de Pago y Notas de Credito/Debito)
- -- 7 tablas (contando intermedias)
+ -- 12 tablas (contando intermedias)
 
-CREATE TABLE finanzas.compras(id_usuario INTEGER NOT NULL,
-                              id_compra SERIAL PRIMARY KEY,
-                              fecha_compra DATE NOT NULL,
-                              CONSTRAINT fk_compra_usr FOREIGN KEY (id_usuario) REFERENCES seguridad.usuarios(id_usuario));
-
-CREATE TABLE finanzas.facturas(id_factura SERIAL PRIMARY KEY,
-                               tipo_comprobante VARCHAR(10) CHECK (tipo_comprobante IN ('Factura A', 'Factura B', 'Factura C')),
+CREATE TABLE finanzas.facturas(id_factura BIGSERIAL PRIMARY KEY,
+                               tipo_comprobante VARCHAR(10) CHECK (tipo_comprobante IN ('Factura A', 'Factura B', 'Factura C')) NOT NULL,
                                nro_comprobante VARCHAR(20) NOT NULL,
                                fecha_emision DATE,
                                fecha_vencimiento DATE NOT NULL,
-                               monto DECIMAL(12,2) NOT NULL CHECK (monto >= 0),
+                               monto DECIMAL(12,2) CHECK (monto >= 0) NOT NULL,
                                iva DECIMAL(5,2),
-                               condicion_pago VARCHAR(20) CHECK (condicion_pago IN ('Contado', 'Cuenta Corriente')),
-                               estado VARCHAR(20) DEFAULT 'Impaga' CHECK (estado IN ('Impaga', 'Pagada Parcial', 'Pagada')),
-                               archivo_adjunto VARCHAR(255),
-                               id_compra INTEGER NOT NULL,
-                               CONSTRAINT fk_facturas_comp FOREIGN KEY (id_compra) REFERENCES finanzas.compras(id_compra));
+                               condicion_pago VARCHAR(20) CHECK (condicion_pago IN ('Contado', 'Cuenta Corriente')) NOT NULL,
+                               estado VARCHAR(20) DEFAULT 'Impaga' CHECK (estado IN ('Impaga', 'Pagada Parcialmente', 'Pagada', 'Anulada')),
+                               archivo_adjunto VARCHAR(255));
 
-CREATE TABLE finanzas.detalle_compra(id_producto INTEGER NOT NULL,
-                                     id_compra INTEGER NOT NULL,
-                                     cantidad INTEGER NOT NULL CHECK (cantidad > 0),
-                                     precio_unitario DECIMAL(12,2) NOT NULL CHECK (precio_unitario > 0),
-                                     id_proveedor INTEGER NOT NULL,
-                                     CONSTRAINT pk_detalle_compra PRIMARY KEY (id_producto, id_compra),
-                                     CONSTRAINT fk_detalle_compra_prod FOREIGN KEY (id_producto) REFERENCES logistica.productos(id_producto),
-                                     CONSTRAINT fk_detalle_compra_comp FOREIGN KEY (id_compra) REFERENCES finanzas.compras(id_compra) ON DELETE CASCADE,
-                                     CONSTRAINT fk_detalle_compra_prov FOREIGN KEY (id_proveedor) REFERENCES seguridad.proveedores(id_proveedor));
+-- igual a compras_realizadas
+CREATE TABLE finanzas.compras_pendientes(id_usuario INTEGER NOT NULL,
+                                         id_compra SERIAL PRIMARY KEY,
+                                         id_factura BIGINT,
+                                         fecha_pedido DATE NOT NULL,
+                                         fecha_compra DATE NOT NULL,
+                                         fecha_entrega DATE,
+										 incompleta BOOL DEFAULT TRUE NOT NULL,
+                                         CONSTRAINT fk_compra_usr FOREIGN KEY (id_usuario) REFERENCES seguridad.usuarios(id_usuario),
+                                         CONSTRAINT fk_compras_fact FOREIGN KEY (id_factura) REFERENCES finanzas.facturas(id_factura));
+CREATE TABLE finanzas.pedidos(id_usuario INTEGER NOT NULL,
+                              id_pedido SERIAL PRIMARY KEY,
+                              fecha_pedido DATE NOT NULL,
+                              estado VARCHAR(25) DEFAULT 'Pendiente' CHECK (estado IN ('Pendiente', 'Rechazado')) NOT NULL,
+                              CONSTRAINT fk_compra_usr FOREIGN KEY (id_usuario) REFERENCES seguridad.usuarios(id_usuario));
 
-CREATE TABLE finanzas.notas_credito_debito(id_nota SERIAL PRIMARY KEY,
-                                           id_factura INTEGER NOT NULL,
+CREATE TABLE finanzas.detalle_compra_p(id_compra INTEGER NOT NULL,
+                                       c_barras_proveedor VARCHAR(50) NOT NULL,
+                                       cantidad INTEGER CHECK (cantidad > 0) NOT NULL,
+                                       precio_unitario DECIMAL(12,2) CHECK (precio_unitario > 0) NOT NULL,
+                                       CONSTRAINT pk_detalle_compra_p PRIMARY KEY (id_compra, c_barras_proveedor),
+                                       CONSTRAINT fk_detalle_compra_pend FOREIGN KEY (id_compra) REFERENCES finanzas.compras_pendientes(id_compra) ON DELETE CASCADE,
+                                       CONSTRAINT fk_detalle_compra_p_cat FOREIGN KEY (c_barras_proveedor) REFERENCES logistica.catalogo(c_barras_proveedor));
+									   
+CREATE TABLE finanzas.compras_realizadas(id_usuario INTEGER NOT NULL,
+                                         id_compra SERIAL PRIMARY KEY,
+                                         id_factura BIGINT NOT NULL,
+										  id_pedido INTEGER NOT NULL,
+                                         fecha_pedido DATE NOT NULL,
+                                         fecha_compra DATE NOT NULL,
+                                         fecha_entrega DATE,
+										 CONSTRAINT fk_pedido FOREIGN KEY (id_pedido) REFERENCES finanzas.pedidos(id_pedido),
+                                         CONSTRAINT fk_compra_usr FOREIGN KEY (id_usuario) REFERENCES seguridad.usuarios(id_usuario),
+                                         CONSTRAINT fk_compras_fact FOREIGN KEY (id_factura) REFERENCES finanzas.facturas(id_factura));
+
+
+
+CREATE TABLE finanzas.detalle_compra_r(id_compra INTEGER NOT NULL,
+                                       c_barras_proveedor VARCHAR(50) NOT NULL,
+                                       cantidad INTEGER CHECK (cantidad > 0) NOT NULL,
+                                       precio_unitario DECIMAL(12,2) CHECK (precio_unitario > 0) NOT NULL,
+                                       CONSTRAINT pk_detalle_compra_r PRIMARY KEY (id_compra, c_barras_proveedor),
+                                       CONSTRAINT fk_detalle_compra_real FOREIGN KEY (id_compra) REFERENCES finanzas.compras_realizadas(id_compra) ON DELETE CASCADE,
+                                       CONSTRAINT fk_detalle_compra_r_cat FOREIGN KEY (c_barras_proveedor) REFERENCES logistica.catalogo(c_barras_proveedor));
+
+CREATE TABLE finanzas.items_pedidos(id_pedido INTEGER NOT NULL,
+                                    c_barras_proveedor VARCHAR(50) NOT NULL,
+                                    cantidad INTEGER CHECK (cantidad > 0) NOT NULL,
+                                    precio_unitario DECIMAL(12,2) CHECK (precio_unitario > 0) NOT NULL,
+                                    CONSTRAINT pk_items_pedidos PRIMARY KEY (id_pedido, c_barras_proveedor),
+                                    CONSTRAINT fk_items_pedidos_ped FOREIGN KEY (id_pedido) REFERENCES finanzas.pedidos(id_pedido) ON DELETE CASCADE,
+                                    CONSTRAINT fk_items_pedidos_cat FOREIGN KEY (c_barras_proveedor) REFERENCES logistica.catalogo(c_barras_proveedor));
+
+CREATE TABLE finanzas.notas_credito_debito(id_nota BIGSERIAL PRIMARY KEY,
                                            tipo_nota VARCHAR(10) CHECK (tipo_nota IN ('Credito', 'Debito')),
                                            nro_comprobante VARCHAR(20) NOT NULL,
                                            fecha DATE NOT NULL,
-                                           motivo TEXT,
+                                           motivo TEXT NOT NULL,
                                            monto DECIMAL(12,2) NOT NULL CHECK (monto > 0),
                                            archivo_adjunto VARCHAR(255),
-                                           CONSTRAINT uq_notas_unicas UNIQUE (id_factura, tipo_nota),  -- no se muestra en pgadmin
+                                           id_factura BIGINT NOT NULL,
+                                           CONSTRAINT uq_notas_unicas UNIQUE (id_factura, tipo_nota),
                                            CONSTRAINT fk_nota_fact FOREIGN KEY (id_factura) REFERENCES finanzas.facturas(id_factura));
 
-CREATE TABLE finanzas.ordenes_pago(id_orden SERIAL PRIMARY KEY,
+CREATE TABLE finanzas.ordenes_pago(id_orden BIGSERIAL PRIMARY KEY,
                                    fecha_emision DATE NOT NULL DEFAULT CURRENT_DATE,
                                    monto_total DECIMAL(12,2) NOT NULL CHECK (monto_total > 0),
                                    archivo_pdf VARCHAR(255),
@@ -191,33 +227,33 @@ CREATE TABLE finanzas.metodos_pago_orden(id_metodo SERIAL PRIMARY KEY,
                                          tipo_metodo VARCHAR(30) CHECK (tipo_metodo IN ('Efectivo', 'Transferencia', 'Cheque', 'Saldo a Favor')),
                                          monto DECIMAL(12,2) NOT NULL CHECK (monto > 0),
                                          referencia VARCHAR(100), 
-                                         id_orden INTEGER NOT NULL,
+                                         id_orden BIGINT NOT NULL,
                                          CONSTRAINT fk_metodos_pago_orden_op FOREIGN KEY (id_orden) REFERENCES finanzas.ordenes_pago(id_orden));
 
-CREATE TABLE finanzas.detalle_ordenes_pago(id_orden INTEGER NOT NULL,
-                                           id_compra INTEGER NOT NULL, 
+CREATE TABLE finanzas.detalle_ordenes_pago(id_orden BIGINT NOT NULL,
+                                           id_factura BIGINT NOT NULL, 
                                            monto_asignado DECIMAL(12,2) NOT NULL CHECK (monto_asignado > 0),
-                                           CONSTRAINT pk_detalles_ordenes_pago PRIMARY KEY (id_orden, id_compra),
+                                           CONSTRAINT pk_detalles_ordenes_pago PRIMARY KEY (id_orden, id_factura),
                                            CONSTRAINT fk_detalles_ordenes_pago_ord FOREIGN KEY (id_orden) REFERENCES finanzas.ordenes_pago(id_orden),
-                                           CONSTRAINT fk_detalles_ordenes_pago_comp FOREIGN KEY (id_compra) REFERENCES finanzas.compras(id_compra));
+                                           CONSTRAINT fk_detalles_ordenes_pago_fact FOREIGN KEY (id_factura) REFERENCES finanzas.facturas(id_factura));
 
 -- Cuentas Corrientes (+ logica para el historial)
-CREATE TABLE finanzas.movimientos_cc(id_movimiento SERIAL PRIMARY KEY,
+CREATE TABLE finanzas.movimientos_cc(id_movimiento BIGSERIAL PRIMARY KEY,
                                      fecha_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                      tipo_movimiento VARCHAR(30) CHECK (tipo_movimiento IN ('Saldo Inicial', 'Compra', 'Pago', 'Nota Credito', 'Nota Debito')),
                                      monto DECIMAL(12,2) NOT NULL,
 
-                                     id_compra INTEGER NULL,
-                                     id_nota INTEGER NULL,
-                                     id_orden INTEGER NULL,
+                                     id_factura BIGINT NULL,
+                                     id_nota BIGINT NULL,
+                                     id_orden BIGINT NULL,
                                      id_proveedor INTEGER NOT NULL,
-                                     CONSTRAINT fk_movimientos_cc_comp FOREIGN KEY (id_compra) REFERENCES finanzas.compras(id_compra),
+                                     CONSTRAINT fk_movimientos_cc_fact FOREIGN KEY (id_factura) REFERENCES finanzas.facturas(id_factura),
                                      CONSTRAINT fk_movimientos_cc_nota FOREIGN KEY (id_nota) REFERENCES finanzas.notas_credito_debito(id_nota),
                                      CONSTRAINT fk_movimientos_cc_ord FOREIGN KEY (id_orden) REFERENCES finanzas.ordenes_pago(id_orden),
                                      CONSTRAINT fk_movimientos_cc_prov FOREIGN KEY (id_proveedor) REFERENCES seguridad.proveedores(id_proveedor),
 
                                      -- Controla que cada movimiento se tome una sola vez
-                                     CONSTRAINT chk_arco_exclusivo CHECK((id_compra IS NOT NULL)::INT + 
+                                     CONSTRAINT chk_arco_exclusivo CHECK((id_factura IS NOT NULL)::INT + 
                                                                          (id_orden IS NOT NULL)::INT + 
                                                                          (id_nota IS NOT NULL)::INT <= 1));
 

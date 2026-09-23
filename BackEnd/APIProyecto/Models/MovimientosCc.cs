@@ -5,7 +5,7 @@ namespace APIProyecto.Models;
 
 public partial class MovimientosCc
 {
-    public int IdMovimiento { get; set; }
+    public long IdMovimiento { get; set; }
 
     public DateTime? FechaHora { get; set; }
 
@@ -13,15 +13,15 @@ public partial class MovimientosCc
 
     public decimal Monto { get; set; }
 
-    public int? IdCompra { get; set; }
+    public long? IdFactura { get; set; }
 
-    public int? IdNota { get; set; }
+    public long? IdNota { get; set; }
 
-    public int? IdOrden { get; set; }
+    public long? IdOrden { get; set; }
 
     public int IdProveedor { get; set; }
 
-    public virtual Compra? IdCompraNavigation { get; set; }
+    public virtual Factura? IdFacturaNavigation { get; set; }
 
     public virtual NotasCreditoDebito? IdNotaNavigation { get; set; }
 

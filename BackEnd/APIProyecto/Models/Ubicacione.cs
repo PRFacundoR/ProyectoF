@@ -9,13 +9,13 @@ public partial class Ubicacione
 
     public string Sector { get; set; } = null!;
 
-    public string Estanteria { get; set; } = null!;
+    public short Estanteria { get; set; }
 
-    public bool? Activo { get; set; }
+    public bool Activo { get; set; }
 
     public int IdDeposito { get; set; }
 
     public virtual Deposito IdDepositoNavigation { get; set; } = null!;
 
-    public virtual ICollection<StockUbicacion> StockUbicacions { get; set; } = new List<StockUbicacion>();
+    public virtual ICollection<Stock> Stocks { get; set; } = new List<Stock>();
 }

@@ -11,7 +11,7 @@ public partial class Deposito
 
     public string Direccion { get; set; } = null!;
 
-    public bool? Activo { get; set; }
+    public bool Activo { get; set; }
 
     public virtual ICollection<Ubicacione> Ubicaciones { get; set; } = new List<Ubicacione>();
 }

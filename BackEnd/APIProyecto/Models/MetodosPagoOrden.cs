@@ -13,7 +13,7 @@ public partial class MetodosPagoOrden
 
     public string? Referencia { get; set; }
 
-    public int IdOrden { get; set; }
+    public long IdOrden { get; set; }
 
     public virtual OrdenesPago IdOrdenNavigation { get; set; } = null!;
 }

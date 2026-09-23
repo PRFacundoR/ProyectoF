@@ -23,13 +23,11 @@ public partial class Proveedore
 
     public string Email { get; set; } = null!;
 
-    public bool? Activo { get; set; }
+    public bool Activo { get; set; }
 
-    public virtual ICollection<DetalleCompra> DetalleCompras { get; set; } = new List<DetalleCompra>();
+    public virtual ICollection<Catalogo> Catalogos { get; set; } = new List<Catalogo>();
 
     public virtual ICollection<MovimientosCc> MovimientosCcs { get; set; } = new List<MovimientosCc>();
 
     public virtual ICollection<OrdenesPago> OrdenesPagos { get; set; } = new List<OrdenesPago>();
-
-    public virtual ICollection<ProductosProveedor> ProductosProveedors { get; set; } = new List<ProductosProveedor>();
 }

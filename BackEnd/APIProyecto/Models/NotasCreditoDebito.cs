@@ -5,9 +5,7 @@ namespace APIProyecto.Models;
 
 public partial class NotasCreditoDebito
 {
-    public int IdNota { get; set; }
-
-    public int IdFactura { get; set; }
+    public long IdNota { get; set; }
 
     public string? TipoNota { get; set; }
 
@@ -15,11 +13,13 @@ public partial class NotasCreditoDebito
 
     public DateOnly Fecha { get; set; }
 
-    public string? Motivo { get; set; }
+    public string Motivo { get; set; } = null!;
 
     public decimal Monto { get; set; }
 
     public string? ArchivoAdjunto { get; set; }
+
+    public long IdFactura { get; set; }
 
     public virtual Factura IdFacturaNavigation { get; set; } = null!;
 

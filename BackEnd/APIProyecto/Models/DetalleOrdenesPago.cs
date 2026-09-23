@@ -5,13 +5,13 @@ namespace APIProyecto.Models;
 
 public partial class DetalleOrdenesPago
 {
-    public int IdOrden { get; set; }
+    public long IdOrden { get; set; }
 
-    public int IdCompra { get; set; }
+    public long IdFactura { get; set; }
 
     public decimal MontoAsignado { get; set; }
 
-    public virtual Compra IdCompraNavigation { get; set; } = null!;
+    public virtual Factura IdFacturaNavigation { get; set; } = null!;
 
     public virtual OrdenesPago IdOrdenNavigation { get; set; } = null!;
 }

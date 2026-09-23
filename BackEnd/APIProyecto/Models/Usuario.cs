@@ -15,7 +15,9 @@ public partial class Usuario
 
     public virtual ICollection<Bitacora> Bitacoras { get; set; } = new List<Bitacora>();
 
-    public virtual ICollection<Compra> Compras { get; set; } = new List<Compra>();
+    public virtual ICollection<ComprasPendiente> ComprasPendientes { get; set; } = new List<ComprasPendiente>();
+
+    public virtual ICollection<ComprasRealizada> ComprasRealizada { get; set; } = new List<ComprasRealizada>();
 
     public virtual Role IdRolNavigation { get; set; } = null!;
 
@@ -24,6 +26,8 @@ public partial class Usuario
     public virtual ICollection<OrdenesPago> OrdenesPagoIdAutorizaNavigations { get; set; } = new List<OrdenesPago>();
 
     public virtual ICollection<OrdenesPago> OrdenesPagoIdEmisorNavigations { get; set; } = new List<OrdenesPago>();
+
+    public virtual ICollection<Pedido> Pedidos { get; set; } = new List<Pedido>();
 
     public virtual ICollection<RecuperacionPassword> RecuperacionPasswords { get; set; } = new List<RecuperacionPassword>();
 }

@@ -5,7 +5,7 @@ namespace APIProyecto.Models;
 
 public partial class OrdenesPago
 {
-    public int IdOrden { get; set; }
+    public long IdOrden { get; set; }
 
     public DateOnly FechaEmision { get; set; }
 
