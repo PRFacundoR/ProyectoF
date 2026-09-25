@@ -1,7 +1,22 @@
 using APIProyecto.DB;
 using Microsoft.EntityFrameworkCore;
+using APIProyecto.Interfaces;
+using APIProyecto.Repository;
+using Serilog;
+
+//guardar error en archivo
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console() // Para seguir viéndolos en la consola
+    .WriteTo.File("Logs/errores_api-.txt", rollingInterval: RollingInterval.Day) // Crea un archivo nuevo por día
+    .CreateLogger();
+
+
+
 
 var builder = WebApplication.CreateBuilder(args);
+
+//para guardar errores en archivo
+builder.Host.UseSerilog(); 
 
 // Controllers
 builder.Services.AddControllers();
@@ -19,6 +34,39 @@ builder.Services.AddDbContext<ComprasDbContext>(options =>
 // OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    builder.Services.AddScoped<IRepositorioRoles, RepositorioRoles>();
+
+
 
 var app = builder.Build();
 

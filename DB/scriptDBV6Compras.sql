@@ -201,6 +201,12 @@ CREATE TABLE finanzas.items_pedidos(id_pedido INTEGER NOT NULL,
                                     CONSTRAINT fk_items_pedidos_ped FOREIGN KEY (id_pedido) REFERENCES finanzas.pedidos(id_pedido) ON DELETE CASCADE,
                                     CONSTRAINT fk_items_pedidos_cat FOREIGN KEY (c_barras_proveedor) REFERENCES logistica.catalogo(c_barras_proveedor));
 
+
+
+
+
+
+--capaz se hagan 2 tablas y la nota de credito apunte capaz a proveedor y factura mientras que debito solo a factura, siguiendo la logica de las compras
 CREATE TABLE finanzas.notas_credito_debito(id_nota BIGSERIAL PRIMARY KEY,
                                            tipo_nota VARCHAR(10) CHECK (tipo_nota IN ('Credito', 'Debito')),
                                            nro_comprobante VARCHAR(20) NOT NULL,
@@ -211,6 +217,10 @@ CREATE TABLE finanzas.notas_credito_debito(id_nota BIGSERIAL PRIMARY KEY,
                                            id_factura BIGINT NOT NULL,
                                            CONSTRAINT uq_notas_unicas UNIQUE (id_factura, tipo_nota),
                                            CONSTRAINT fk_nota_fact FOREIGN KEY (id_factura) REFERENCES finanzas.facturas(id_factura));
+
+
+
+
 
 CREATE TABLE finanzas.ordenes_pago(id_orden BIGSERIAL PRIMARY KEY,
                                    fecha_emision DATE NOT NULL DEFAULT CURRENT_DATE,
@@ -230,6 +240,10 @@ CREATE TABLE finanzas.metodos_pago_orden(id_metodo SERIAL PRIMARY KEY,
                                          id_orden BIGINT NOT NULL,
                                          CONSTRAINT fk_metodos_pago_orden_op FOREIGN KEY (id_orden) REFERENCES finanzas.ordenes_pago(id_orden));
 
+
+
+
+--capaz que haya que agregar un detalle orden de pago para las notas de debito
 CREATE TABLE finanzas.detalle_ordenes_pago(id_orden BIGINT NOT NULL,
                                            id_factura BIGINT NOT NULL, 
                                            monto_asignado DECIMAL(12,2) NOT NULL CHECK (monto_asignado > 0),
@@ -240,7 +254,7 @@ CREATE TABLE finanzas.detalle_ordenes_pago(id_orden BIGINT NOT NULL,
 -- Cuentas Corrientes (+ logica para el historial)
 CREATE TABLE finanzas.movimientos_cc(id_movimiento BIGSERIAL PRIMARY KEY,
                                      fecha_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                                     tipo_movimiento VARCHAR(30) CHECK (tipo_movimiento IN ('Saldo Inicial', 'Compra', 'Pago', 'Nota Credito', 'Nota Debito')),
+                                     tipo_movimiento VARCHAR(30) CHECK (tipo_movimiento IN ('Saldo Inicial', 'Factura', 'Pago', 'Nota Credito', 'Nota Debito')), -- cambio
                                      monto DECIMAL(12,2) NOT NULL,
 
                                      id_factura BIGINT NULL,
