@@ -65,6 +65,7 @@ builder.Services.AddSwaggerGen();
 
 
     builder.Services.AddScoped<IRepositorioRoles, RepositorioRoles>();
+    builder.Services.AddScoped<IRepositorioPermisos, RepositorioPermisos>();
 
 
 

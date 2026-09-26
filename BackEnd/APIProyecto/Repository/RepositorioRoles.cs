@@ -27,7 +27,7 @@ namespace APIProyecto.Repository
         {
             try
             {
-                return await _contexto.Roles.ToListAsync();
+                return await _contexto.Roles.Include(r => r.IdPermisos).ToListAsync();
             }
             catch (Exception ex)
             {
@@ -132,19 +132,27 @@ namespace APIProyecto.Repository
         {
             try
             {
-                var rolExistente = await _contexto.Roles.FindAsync(id);
-                if (rolExistente == null) return false;
+                var rolExistente = await _contexto.Roles
+            .Include(r => r.IdPermisos) // o Include(r => r.RolesPermisos) si tu modelo usa la tabla intermedia explícita
+            .FirstOrDefaultAsync(r => r.IdRol == id);
 
-                _contexto.Roles.Remove(rolExistente);
-                await _contexto.SaveChangesAsync();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error al eliminar el rol con ID {id}.");
-                throw;
-            }
-        }
+        if (rolExistente == null) return false;
+
+        // 1. Limpiamos las relaciones (Esto borra las filas en roles_permisos)
+        rolExistente.IdPermisos.Clear();
+
+        // 2. Ahora sí borramos el rol
+        _contexto.Roles.Remove(rolExistente);
+        await _contexto.SaveChangesAsync();
+        
+        return true;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, $"Error al eliminar el rol con ID {id}.");
+        throw;
+    }
+}
 
 
 

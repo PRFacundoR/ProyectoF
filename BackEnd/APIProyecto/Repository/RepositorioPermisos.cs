@@ -30,7 +30,7 @@ namespace APIProyecto.Repository
             }
         }
 
-        public async Task<Permiso> GetPermiso(int id)
+        public async Task<Permiso> GetPermisoById(int id)
         {
             try
             {

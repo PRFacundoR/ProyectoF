@@ -12,9 +12,9 @@ namespace APIProyecto.Controller
         private readonly IRepositorioRoles _repoRoles;
         private readonly IRepositorioPermisos _repoPermisos;
 
-        public RolesController(IRepositorioRoles repoRoles, IRepositorioPermisos repoPermisos) 
-        { 
-            _repoRoles = repoRoles; 
+        public RolesController(IRepositorioRoles repoRoles, IRepositorioPermisos repoPermisos)
+        {
+            _repoRoles = repoRoles;
             _repoPermisos = repoPermisos;
         }
 
@@ -23,7 +23,7 @@ namespace APIProyecto.Controller
         public async Task<ActionResult<IEnumerable<PermisoViewModel>>> GetPermisos()
         {
             var permisosDb = await _repoPermisos.GetPermisos();
-            
+
             var permisosViewModel = permisosDb.Select(p => new PermisoViewModel
             {
                 IdPermiso = p.IdPermiso,
@@ -53,6 +53,20 @@ namespace APIProyecto.Controller
         [HttpPost]
         public async Task<ActionResult> CrearRol([FromBody] RoleCreateViewModel modelo)
         {
+
+            var permisosDb = await _repoPermisos.GetPermisos();
+            var idsValidosDb = permisosDb.Select(p => p.IdPermiso).ToList();
+
+            var permisosInexistentes = modelo.PermisosIds.Except(idsValidosDb).ToList();
+
+            if (permisosInexistentes.Any())
+            {
+                return BadRequest(new
+                {
+                    mensaje = $"Error: Los siguientes IDs de permisos no existen en el sistema: {string.Join(", ", permisosInexistentes)}"
+                });
+            }
+
             bool existe = await _repoRoles.ExisteRol(modelo.Nombre);
             if (existe)
             {
@@ -70,9 +84,22 @@ namespace APIProyecto.Controller
             return Ok(new { mensaje = "Rol creado exitosamente." });
         }
 
-         [HttpPut("{id}")]
+        [HttpPut("{id}")]
         public async Task<ActionResult> ActualizarRol(int id, [FromBody] RoleCreateViewModel modelo)
         {
+            var permisosDb = await _repoPermisos.GetPermisos();
+            var idsValidosDb = permisosDb.Select(p => p.IdPermiso).ToList();
+
+            var permisosInexistentes = modelo.PermisosIds.Except(idsValidosDb).ToList();
+
+            if (permisosInexistentes.Any())
+            {
+                return BadRequest(new
+                {
+                    mensaje = $"Error: Los siguientes IDs de permisos no existen en el sistema: {string.Join(", ", permisosInexistentes)}"
+                });
+            }
+
             var rolesExistentes = await _repoRoles.GetRoles();
             if (rolesExistentes.Any(r => r.Nombre.ToLower() == modelo.Nombre.ToLower() && r.IdRol != id))
             {
@@ -99,7 +126,7 @@ namespace APIProyecto.Controller
         public async Task<ActionResult> DeleteRol(int id)
         {
             var eliminado = await _repoRoles.DeleteRol(id);
-            
+
             if (!eliminado)
             {
                 return NotFound(new { mensaje = "El rol que intenta eliminar no existe." });
@@ -108,10 +135,10 @@ namespace APIProyecto.Controller
             return Ok(new { mensaje = "Rol eliminado exitosamente." });
         }
 
-       
+
 
 
 
     }
-    
+
 }
