@@ -1,4 +1,4 @@
-import { type RouteConfig, index,route } from "@react-router/dev/routes";
+import { type RouteConfig, index,route,layout } from "@react-router/dev/routes";
 
 export default [
     
@@ -11,11 +11,18 @@ export default [
   route("carrito", "routes/carrito.tsx"),
 */
 
-  route("roles", "routes/roles.tsx"), // Panel de Roles
+  //route("roles", "routes/roles.tsx"), // Panel de Roles
  // route("roles/nuevo", "routes/rolesForm.tsx"), // Crear Rol
   //route("roles/editar/:id", "routes/rolesForm.tsx"), // Editar Rol (Mismo componente)
    // Le agregamos un objeto { id: "..." } al final para que sean únicas internamente
-  route("roles/nuevo", "routes/rolesForm.tsx", { id: "crear-rol" }), 
-  route("roles/editar/:id", "routes/rolesForm.tsx", { id: "editar-rol" }), 
+  //route("roles/nuevo", "routes/rolesForm.tsx", { id: "crear-rol" }), 
+  //route("roles/editar/:id", "routes/rolesForm.tsx", { id: "editar-rol" }), 
+
+  // Todo lo que esté adentro de este "layout" ESTÁ PROTEGIDO
+  layout("routes/protected.tsx", [
+    route("roles", "routes/roles.tsx"), 
+    route("roles/nuevo", "routes/rolesForm.tsx", { id: "crear-rol" }), 
+    route("roles/editar/:id", "routes/rolesForm.tsx", { id: "editar-rol" }), 
+  ])
 
 ] satisfies RouteConfig;

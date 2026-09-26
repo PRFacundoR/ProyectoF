@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using APIProyecto.Interfaces;
 using APIProyecto.Models;
@@ -35,6 +36,7 @@ namespace APIProyecto.Controller
         }
 
         [HttpGet]
+        [Authorize(Policy = "RequiereLeerRoles")]
         public async Task<ActionResult<IEnumerable<RoleViewModel>>> GetRoles()
         {
             var rolesDb = await _repoRoles.GetRoles();
@@ -51,6 +53,7 @@ namespace APIProyecto.Controller
         }
 
         [HttpPost]
+        [Authorize(Policy = "RequiereCrearRoles")]
         public async Task<ActionResult> CrearRol([FromBody] RoleCreateViewModel modelo)
         {
 
@@ -87,6 +90,20 @@ namespace APIProyecto.Controller
         [HttpPut("{id}")]
         public async Task<ActionResult> ActualizarRol(int id, [FromBody] RoleCreateViewModel modelo)
         {
+
+            if (id == 1)
+            {
+                return BadRequest(new { mensaje = "El rol de Administrador principal del sistema está protegido y no puede ser actualizado." });
+            }
+
+            var miRolActual = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            var rolAactualizar = await _repoRoles.GetRol(id);
+            
+            if (rolAactualizar != null && rolAactualizar.Nombre == miRolActual)
+            {
+                return BadRequest(new { mensaje = "Seguridad: No puedes editar el rol que estás utilizando actualmente." });
+            }
+            
             var permisosDb = await _repoPermisos.GetPermisos();
             var idsValidosDb = permisosDb.Select(p => p.IdPermiso).ToList();
 
@@ -125,6 +142,20 @@ namespace APIProyecto.Controller
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteRol(int id)
         {
+
+            if (id == 1)
+            {
+                return BadRequest(new { mensaje = "El rol de Administrador principal del sistema está protegido y no puede ser eliminado." });
+            }
+
+            // SEGURO DE VIDA 2: El usuario no puede borrar el rol que tiene puesto ahora mismo
+            var miRolActual = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            var rolABorrar = await _repoRoles.GetRol(id);
+
+            if (rolABorrar != null && rolABorrar.Nombre == miRolActual)
+            {
+                return BadRequest(new { mensaje = "Seguridad: No puedes eliminar el rol que estás utilizando actualmente." });
+            }
             var eliminado = await _repoRoles.DeleteRol(id);
 
             if (!eliminado)

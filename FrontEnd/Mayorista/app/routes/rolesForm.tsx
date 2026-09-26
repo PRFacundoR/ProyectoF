@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useRoleStore } from '../store/roleStore';
+import { useAuthStore } from '../store/authStore'; // IMPORTAMOS EL AUTH STORE
 
 // IMPORTANTE: Asegurate de usar TU puerto real acá
 const API_URL = 'http://localhost:5295/api/roles';
@@ -9,8 +10,25 @@ export default function RolesForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { permisos, fetchPermisos } = useRoleStore();
-  
+  const { hasPermiso } = useAuthStore();
+
   const isEditing = Boolean(id);
+
+  
+  
+  useEffect(() => {
+    if (isEditing && !hasPermiso('ACTUALIZAR_ROLES')) {
+      alert("No tienes permiso para editar roles.");
+      navigate('/roles');
+    }
+    if (!isEditing && !hasPermiso('CREAR_ROLES')) {
+      alert("No tienes permiso para crear roles.");
+      navigate('/roles');
+    }
+  }, [isEditing, hasPermiso, navigate]);
+
+
+
 
   const [formData, setFormData] = useState({
     nombre: '',
@@ -30,10 +48,13 @@ export default function RolesForm() {
   // 2. Si estamos editando y los permisos ya cargaron, traemos los datos del rol
   useEffect(() => {
     if (isEditing && permisos.length > 0) {
-      fetch(`${API_URL}/${id}`) // Usamos la URL correcta
+      
+      // ACÁ VA EL PRIMER CAMBIO: Inyectamos el token para leer el rol
+      fetch(`${API_URL}/${id}`, {
+        headers: { 'Authorization': `Bearer ${useAuthStore.getState().token}` }
+      }) 
         .then(res => res.json())
         .then(data => {
-          // Cruzamos los nombres que manda la API con los IDs de nuestro store
           const idsSeleccionados = permisos
             .filter(p => data.permisosAsignados.includes(p.nombrePermiso))
             .map(p => p.idPermiso);
@@ -84,9 +105,13 @@ export default function RolesForm() {
     const url = isEditing ? `${API_URL}/${id}` : API_URL;
     const method = isEditing ? 'PUT' : 'POST';
 
+    // ACÁ VA EL SEGUNDO CAMBIO: Inyectamos el token al guardar
     const response = await fetch(url, {
       method,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${useAuthStore.getState().token}` 
+      },
       body: JSON.stringify(formData)
     });
 
