@@ -67,9 +67,19 @@ builder.Services.AddSwaggerGen();
     builder.Services.AddScoped<IRepositorioRoles, RepositorioRoles>();
     builder.Services.AddScoped<IRepositorioPermisos, RepositorioPermisos>();
 
-
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("PermitirReact", app =>
+    {
+        app.AllowAnyOrigin()
+           .AllowAnyHeader()
+           .AllowAnyMethod();
+    });
+});
 
 var app = builder.Build();
+
+app.UseCors("PermitirReact");
 
 // Swagger
 if (app.Environment.IsDevelopment())

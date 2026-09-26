@@ -135,8 +135,52 @@ namespace APIProyecto.Controller
             return Ok(new { mensaje = "Rol eliminado exitosamente." });
         }
 
+        [HttpGet("buscar")]
+        public async Task<ActionResult<IEnumerable<RoleViewModel>>> BuscarRoles([FromQuery] string nombre)
+        {
+            var rolesDb = await _repoRoles.GetRoles();
+
+            if (!string.IsNullOrWhiteSpace(nombre))
+            {
+                // Filtramos ignorando mayúsculas y minúsculas
+                rolesDb = rolesDb.Where(r => r.Nombre.Contains(nombre, StringComparison.OrdinalIgnoreCase)).ToList();
+            }
+
+            var rolesViewModel = rolesDb.Select(r => new RoleViewModel
+            {
+                IdRol = r.IdRol,
+                Nombre = r.Nombre,
+                Descripcion = r.Descripcion,
+                PermisosAsignados = r.IdPermisos.Select(p => p.NombrePermiso).ToList()
+            }).ToList();
+
+            return Ok(rolesViewModel);
+        }
 
 
+        // ========================================================================
+        // GET: api/roles/5 (Trae UN rol específico para llenar el formulario de Editar)
+        // ========================================================================
+        [HttpGet("{id}")]
+        public async Task<ActionResult<RoleViewModel>> GetRol(int id)
+        {
+            var rolDb = await _repoRoles.GetRol(id);
+
+            if (rolDb == null)
+            {
+                return NotFound(new { mensaje = "El rol solicitado no existe." });
+            }
+
+            var rolViewModel = new RoleViewModel
+            {
+                IdRol = rolDb.IdRol,
+                Nombre = rolDb.Nombre,
+                Descripcion = rolDb.Descripcion,
+                PermisosAsignados = rolDb.IdPermisos?.Select(p => p.NombrePermiso).ToList() ?? new List<string>()
+            };
+
+            return Ok(rolViewModel);
+        }
 
 
     }
