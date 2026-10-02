@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\1MIS COSAS\\Facultad\\Proyecto F\\BackEnd\\APIProyecto\\APIProyecto.csproj": {}
+    "D:\\1MIS COSAS\\Facultad\\VERSION FINAL PROYECTO BIT\\2026-grupo8\\BackEnd\\APIProyecto\\APIProyecto.csproj": {}
   },
   "projects": {
-    "D:\\1MIS COSAS\\Facultad\\Proyecto F\\BackEnd\\APIProyecto\\APIProyecto.csproj": {
+    "D:\\1MIS COSAS\\Facultad\\VERSION FINAL PROYECTO BIT\\2026-grupo8\\BackEnd\\APIProyecto\\APIProyecto.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\1MIS COSAS\\Facultad\\Proyecto F\\BackEnd\\APIProyecto\\APIProyecto.csproj",
+        "projectUniqueName": "D:\\1MIS COSAS\\Facultad\\VERSION FINAL PROYECTO BIT\\2026-grupo8\\BackEnd\\APIProyecto\\APIProyecto.csproj",
         "projectName": "APIProyecto",
-        "projectPath": "D:\\1MIS COSAS\\Facultad\\Proyecto F\\BackEnd\\APIProyecto\\APIProyecto.csproj",
+        "projectPath": "D:\\1MIS COSAS\\Facultad\\VERSION FINAL PROYECTO BIT\\2026-grupo8\\BackEnd\\APIProyecto\\APIProyecto.csproj",
         "packagesPath": "C:\\Users\\Facu\\.nuget\\packages\\",
-        "outputPath": "D:\\1MIS COSAS\\Facultad\\Proyecto F\\BackEnd\\APIProyecto\\obj\\",
+        "outputPath": "D:\\1MIS COSAS\\Facultad\\VERSION FINAL PROYECTO BIT\\2026-grupo8\\BackEnd\\APIProyecto\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Facu\\AppData\\Roaming\\NuGet\\NuGet.Config"
